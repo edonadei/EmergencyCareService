@@ -10,11 +10,27 @@ import java.util.UUID;
 
 public class EmergencyCare {
 
-    private String id;
-    private String name;
-    private HashMap<String, Room> rooms;
-    private HashMap<String, Doctor> doctors;
-    private HashMap<String, Patient> patients;
+    protected String id;
+    protected String name;
+    protected HashMap<String, Room> rooms;
+    protected HashMap<String, Doctor> doctors;
+    protected HashMap<String, Patient> patients;
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
 
     public EmergencyCare(String name) {
         this.id = UUID.randomUUID().toString();
