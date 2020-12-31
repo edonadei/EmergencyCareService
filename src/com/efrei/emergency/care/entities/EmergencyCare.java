@@ -3,6 +3,7 @@ package com.efrei.emergency.care.entities;
 import com.efrei.emergency.care.entities.resources.Doctor;
 import com.efrei.emergency.care.entities.resources.Room;
 import com.efrei.emergency.care.entities.tickets.Ticket;
+import com.efrei.emergency.care.entities.tickets.TicketType;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -23,12 +24,24 @@ public class EmergencyCare {
         this.patients = new HashMap<String, Patient>();
     }
 
-    public void giveResource(Provider provider) {
-
+    public void getDoctor(Provider provider) {
+        Ticket ticketGetResource = new Ticket(this.id, TicketType.NEED_DOCTOR);
+        provider.getTickets().put(ticketGetResource.getId(), ticketGetResource);
     }
 
-    public void getResource(Provider provider) {
-        Ticket ticketGiveRessource = new Ticket(this.id);
+    public void giveDoctor(Provider provider, String doctorID) {
+        Ticket ticketGiveResource = new Ticket(this.id, TicketType.GIVE_DOCTOR, doctorID);
+        provider.getTickets().put(ticketGiveResource.getId(), ticketGiveResource);
+    }
+
+    public void getRoom(Provider provider) {
+        Ticket ticketGetRoom = new Ticket(this.id, TicketType.NEED_ROOM);
+        provider.getTickets().put(ticketGetRoom.getId(), ticketGetRoom);
+    }
+
+    public void getDoctor(Provider provider, String roomID) {
+        Ticket ticketGetDoctor = new Ticket(this.id, TicketType.GIVE_DOCTOR, roomID);
+        provider.getTickets().put(ticketGetDoctor.getId(), ticketGetDoctor);
     }
 
     public HashMap<String, Room> getRooms() {

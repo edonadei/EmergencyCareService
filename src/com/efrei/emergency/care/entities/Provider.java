@@ -3,17 +3,34 @@ package com.efrei.emergency.care.entities;
 import com.efrei.emergency.care.entities.resources.Doctor;
 import com.efrei.emergency.care.entities.resources.Room;
 import com.efrei.emergency.care.entities.tickets.Ticket;
+import com.efrei.emergency.care.entities.tickets.TicketType;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Random;
 
 public class Provider {
 
     public void consumeTicket() {
-        // do something
-    }
+        List<Ticket> valuesList = new ArrayList<Ticket>(this.tickets.values());
+        int randomIndex = new Random().nextInt(valuesList.size());
+        Ticket randomTicket = valuesList.get(randomIndex);
 
-    public void addEmergencyCareService() {
+        if (randomTicket.getType() == TicketType.GIVE_DOCTOR){
 
+        }
+        if (randomTicket.getType() == TicketType.GIVE_ROOM){
+
+        }
+        if (randomTicket.getType() == TicketType.NEED_DOCTOR){
+
+        }
+        if (randomTicket.getType() == TicketType.NEED_ROOM){
+
+        }
+
+        this.tickets.remove(randomTicket.getId());
     }
 
     public HashMap<String, Room> getRooms() {
@@ -40,16 +57,7 @@ public class Provider {
         this.tickets = tickets;
     }
 
-    public HashMap<String, EmergencyCare> getEmergencyCareServices() {
-        return emergencyCareServices;
-    }
-
-    public void setEmergencyCareServices(HashMap<String, EmergencyCare> emergencyCareServices) {
-        this.emergencyCareServices = emergencyCareServices;
-    }
-
     private HashMap<String, Room> rooms;
     private HashMap<String, Doctor> doctors;
     private HashMap<String, Ticket> tickets;
-    private HashMap<String, EmergencyCare> emergencyCareServices;
 }

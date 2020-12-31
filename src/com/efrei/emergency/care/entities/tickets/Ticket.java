@@ -8,7 +8,7 @@ public class Ticket {
     private String emergencyCareID;
     private TicketType type;
 
-    public Ticket(String resourceID, String emergencyCareID, TicketType type) {
+    public Ticket(String emergencyCareID, TicketType type, String resourceID) {
         this.id = UUID.randomUUID().toString();
         this.resourceID = resourceID;
         this.emergencyCareID = emergencyCareID;
