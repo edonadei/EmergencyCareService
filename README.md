@@ -1,3 +1,5 @@
-# EmergencyCareService
+# Emergency care service formal modeling
 
-Formal modeling of an emergency service 
+Java implementation of an emergency service 
+
+![tina modeling](tina_modeling.png)
