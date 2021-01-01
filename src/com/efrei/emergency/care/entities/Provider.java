@@ -14,6 +14,7 @@ public class Provider implements Runnable {
     protected Semaphore doctors;
     protected HashMap<String, Ticket> tickets;
     protected HashMap<String, EmergencyCare> emergencyCareServices;
+    Thread thread;
 
 
     public Provider(String name, int numberDoctors, int numberRooms) {
@@ -37,6 +38,13 @@ public class Provider implements Runnable {
         }
     }
 
+    public void start() {
+        if (thread == null) {
+            thread = new Thread(this, id);
+            thread.start();
+        }
+    }
+
     public void consumeTicket() {
         if (!this.tickets.isEmpty()) {
             List<Ticket> ticketsList = new ArrayList<>(this.tickets.values());
@@ -48,18 +56,26 @@ public class Provider implements Runnable {
             System.out.println("Ticket found asked by " + emergencyCare.getName());
 
             if (ticket.getType() == TicketType.GIVE_DOCTOR) {
+                System.out.println(emergencyCare.getName() + " give a doctor");
                 emergencyCare.getDoctors().acquireUninterruptibly(1);
                 this.doctors.release(1);
+                System.out.println("- provider doctors: " + this.doctors.availablePermits());
+                System.out.println("- emergency care doctors: " + emergencyCare.getDoctors().availablePermits());
             }
             if (ticket.getType() == TicketType.GIVE_ROOM) {
+                System.out.println(emergencyCare.getName() + " give a room");
                 emergencyCare.getRooms().acquireUninterruptibly(1);
                 this.rooms.release(1);
             }
             if (ticket.getType() == TicketType.NEED_DOCTOR) {
+                System.out.println(emergencyCare.getName() + " need a doctor");
                 this.doctors.acquireUninterruptibly(1);
                 emergencyCare.getDoctors().release(1);
+                System.out.println("- provider doctors: " + this.doctors.availablePermits());
+                System.out.println("- emergency care doctors: " + emergencyCare.getDoctors().availablePermits());
             }
             if (ticket.getType() == TicketType.NEED_ROOM) {
+                System.out.println(emergencyCare.getName() + " need a room");
                 this.rooms.acquireUninterruptibly(1);
                 emergencyCare.getRooms().release(1);
             }
