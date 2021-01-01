@@ -4,16 +4,8 @@ import java.util.UUID;
 
 public class Ticket {
     private String id;
-    private String resourceID;
     private String emergencyCareID;
     private TicketType type;
-
-    public Ticket(String emergencyCareID, TicketType type, String resourceID) {
-        this.id = UUID.randomUUID().toString();
-        this.resourceID = resourceID;
-        this.emergencyCareID = emergencyCareID;
-        this.type = type;
-    }
 
     public Ticket( String emergencyCareID, TicketType type) {
         this.id = UUID.randomUUID().toString();
@@ -27,14 +19,6 @@ public class Ticket {
 
     public void setId(String id) {
         this.id = id;
-    }
-
-    public String getResourceID() {
-        return resourceID;
-    }
-
-    public void setResourceID(String resourceID) {
-        this.resourceID = resourceID;
     }
 
     public String getEmergencyCareID() {

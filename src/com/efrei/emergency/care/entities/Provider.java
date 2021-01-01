@@ -1,85 +1,73 @@
 package com.efrei.emergency.care.entities;
 
-import com.efrei.emergency.care.entities.resources.Doctor;
-import com.efrei.emergency.care.entities.resources.Room;
 import com.efrei.emergency.care.entities.tickets.Ticket;
 import com.efrei.emergency.care.entities.tickets.TicketType;
 
 import java.util.*;
+import java.util.concurrent.Semaphore;
 
-public class Provider {
+public class Provider implements Runnable {
 
     private String id;
     private String name;
-    private HashMap<String, Room> rooms;
-    protected HashMap<String, Doctor> doctors;
+    private Semaphore rooms;
+    protected Semaphore doctors;
     protected HashMap<String, Ticket> tickets;
     protected HashMap<String, EmergencyCare> emergencyCareServices;
 
-    public Provider(String name) {
+
+    public Provider(String name, int numberDoctors, int numberRooms) {
         this.name = name;
         this.id = UUID.randomUUID().toString();
         this.tickets = new HashMap<String, Ticket>();
-        this.doctors = new HashMap<String, Doctor>();
+        this.doctors = new Semaphore(numberDoctors);
+        this.rooms = new Semaphore(numberRooms);
         this.emergencyCareServices = new HashMap<String, EmergencyCare>();
-        this.rooms = new HashMap<String, Room>();
+    }
+
+    public void run() {
+        System.out.println("Start: Provider " + this.name + "  with ID: " + this.id);
+        while (true) {
+            consumeTicket();
+            try {
+                Thread.sleep(10000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     public void consumeTicket() {
-        List<Ticket> ticketsList = new ArrayList<>(this.tickets.values());
-        int randomIndex = new Random().nextInt(ticketsList.size());
-        Ticket ticket = ticketsList.get(randomIndex);
+        if (!this.tickets.isEmpty()) {
+            List<Ticket> ticketsList = new ArrayList<>(this.tickets.values());
+            int randomIndex = new Random().nextInt(ticketsList.size());
 
-        if (ticket.getType() == TicketType.GIVE_DOCTOR){
+            Ticket ticket = ticketsList.get(randomIndex);
+
             EmergencyCare emergencyCare = this.emergencyCareServices.get(ticket.getEmergencyCareID());
-            Doctor doctorToShare = emergencyCare.getDoctors().get(ticket.getResourceID());
-            this.doctors.put(doctorToShare.getId(), doctorToShare);
-            emergencyCare.getDoctors().remove(ticket.getResourceID());
-        }
-        if (ticket.getType() == TicketType.GIVE_ROOM){
-            EmergencyCare emergencyCare = this.emergencyCareServices.get(ticket.getEmergencyCareID());
-            Room roomToShare = emergencyCare.getRooms().get(ticket.getResourceID());
-            this.rooms.put(roomToShare.getId(), roomToShare);
-            emergencyCare.getRooms().remove(ticket.getResourceID());
-        }
-        if (ticket.getType() == TicketType.NEED_DOCTOR){
-            List<Doctor> valuesDoctors = new ArrayList<>(this.doctors.values());
-            if (valuesDoctors.size() > 0) {
-                int randomIndexDoctor = new Random().nextInt(valuesDoctors.size());
-                Doctor doctorToGive = valuesDoctors.get(randomIndexDoctor);
-                EmergencyCare emergencyCare = this.emergencyCareServices.get(ticket.getEmergencyCareID());
-                emergencyCare.getDoctors().put(doctorToGive.getId(), doctorToGive);
-                this.doctors.remove(doctorToGive.getId());
+            System.out.println("Ticket found asked by " + emergencyCare.getName());
+
+            if (ticket.getType() == TicketType.GIVE_DOCTOR) {
+                emergencyCare.getDoctors().acquireUninterruptibly(1);
+                this.doctors.release(1);
             }
-        }
-        if (ticket.getType() == TicketType.NEED_ROOM){
-            List<Room> valuesRooms = new ArrayList<>(this.rooms.values());
-            if (valuesRooms.size() > 0) {
-                int randomIndexRoom = new Random().nextInt(valuesRooms.size());
-                Room roomToGive = valuesRooms.get(randomIndexRoom);
-                EmergencyCare emergencyCare = this.emergencyCareServices.get(ticket.getEmergencyCareID());
-                emergencyCare.getRooms().put(roomToGive.getId(), roomToGive);
-                this.rooms.remove(roomToGive.getId());
+            if (ticket.getType() == TicketType.GIVE_ROOM) {
+                emergencyCare.getRooms().acquireUninterruptibly(1);
+                this.rooms.release(1);
             }
+            if (ticket.getType() == TicketType.NEED_DOCTOR) {
+                this.doctors.acquireUninterruptibly(1);
+                emergencyCare.getDoctors().release(1);
+            }
+            if (ticket.getType() == TicketType.NEED_ROOM) {
+                this.rooms.acquireUninterruptibly(1);
+                emergencyCare.getRooms().release(1);
+            }
+
+            this.tickets.remove(ticket.getId());
+        } else {
+            System.out.println("No ticket found");
         }
-
-        this.tickets.remove(ticket.getId());
-    }
-
-    public HashMap<String, Room> getRooms() {
-        return rooms;
-    }
-
-    public void setRooms(HashMap<String, Room> rooms) {
-        this.rooms = rooms;
-    }
-
-    public HashMap<String, Doctor> getDoctors() {
-        return doctors;
-    }
-
-    public void setDoctors(HashMap<String, Doctor> doctors) {
-        this.doctors = doctors;
     }
 
     public HashMap<String, Ticket> getTickets() {
@@ -98,5 +86,35 @@ public class Provider {
         this.emergencyCareServices = emergencyCareServices;
     }
 
+    public String getId() {
+        return id;
+    }
 
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public Semaphore getRooms() {
+        return rooms;
+    }
+
+    public void setRooms(Semaphore rooms) {
+        this.rooms = rooms;
+    }
+
+    public Semaphore getDoctors() {
+        return doctors;
+    }
+
+    public void setDoctors(Semaphore doctors) {
+        this.doctors = doctors;
+    }
 }
