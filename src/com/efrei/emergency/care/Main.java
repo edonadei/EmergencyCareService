@@ -1,7 +1,7 @@
 package com.efrei.emergency.care;
 
-import com.efrei.emergency.care.entities.EmergencyCare;
-import com.efrei.emergency.care.entities.Provider;
+import com.efrei.emergency.care.services.EmergencyCare;
+import com.efrei.emergency.care.services.Provider;
 
 public class Main {
 

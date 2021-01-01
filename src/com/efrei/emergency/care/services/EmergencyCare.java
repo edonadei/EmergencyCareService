@@ -1,4 +1,4 @@
-package com.efrei.emergency.care.entities;
+package com.efrei.emergency.care.services;
 
 import com.efrei.emergency.care.entities.tickets.Ticket;
 import com.efrei.emergency.care.entities.tickets.TicketType;
