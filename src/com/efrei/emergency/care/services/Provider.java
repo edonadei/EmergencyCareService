@@ -45,6 +45,10 @@ public class Provider implements Runnable {
         }
     }
 
+    public void printProvider (String text) {
+        System.out.println(this.name + ": " + text);
+    }
+
     public void consumeTicket() {
         if (!this.tickets.isEmpty()) {
             List<Ticket> ticketsList = new ArrayList<>(this.tickets.values());
@@ -53,36 +57,40 @@ public class Provider implements Runnable {
             Ticket ticket = ticketsList.get(randomIndex);
 
             EmergencyCare emergencyCare = this.emergencyCareServices.get(ticket.getEmergencyCareID());
-            System.out.println("Ticket found asked by " + emergencyCare.getName());
+            printProvider("Ticket found asked by " + emergencyCare.getName());
 
             if (ticket.getType() == TicketType.GIVE_DOCTOR) {
-                System.out.println(emergencyCare.getName() + " give a doctor");
+                printProvider(emergencyCare.getName() + " give a doctor");
                 emergencyCare.getDoctors().acquireUninterruptibly(1);
                 this.doctors.release(1);
-                System.out.println("- provider doctors: " + this.doctors.availablePermits());
-                System.out.println("- emergency care doctors: " + emergencyCare.getDoctors().availablePermits());
+                printProvider("- provider doctors: " + this.doctors.availablePermits());
+                printProvider("- emergency care doctors: " + emergencyCare.getDoctors().availablePermits());
             }
             if (ticket.getType() == TicketType.GIVE_ROOM) {
-                System.out.println(emergencyCare.getName() + " give a room");
+                printProvider(emergencyCare.getName() + " give a room");
                 emergencyCare.getRooms().acquireUninterruptibly(1);
                 this.rooms.release(1);
+                printProvider("- provider rooms: " + this.rooms.availablePermits());
+                printProvider("- emergency care rooms: " + emergencyCare.getRooms().availablePermits());
             }
             if (ticket.getType() == TicketType.NEED_DOCTOR) {
-                System.out.println(emergencyCare.getName() + " need a doctor");
+                printProvider(emergencyCare.getName() + " need a doctor");
                 this.doctors.acquireUninterruptibly(1);
                 emergencyCare.getDoctors().release(1);
-                System.out.println("- provider doctors: " + this.doctors.availablePermits());
-                System.out.println("- emergency care doctors: " + emergencyCare.getDoctors().availablePermits());
+                printProvider("- provider doctors: " + this.doctors.availablePermits());
+                printProvider("- emergency care doctors: " + emergencyCare.getDoctors().availablePermits());
             }
             if (ticket.getType() == TicketType.NEED_ROOM) {
-                System.out.println(emergencyCare.getName() + " need a room");
+                printProvider(emergencyCare.getName() + " need a room");
                 this.rooms.acquireUninterruptibly(1);
                 emergencyCare.getRooms().release(1);
+                printProvider("- provider rooms: " + this.rooms.availablePermits());
+                printProvider("- emergency care rooms: " + emergencyCare.getRooms().availablePermits());
             }
 
             this.tickets.remove(ticket.getId());
         } else {
-            System.out.println("No ticket found");
+            printProvider("No ticket found");
         }
     }
 
@@ -90,47 +98,8 @@ public class Provider implements Runnable {
         return tickets;
     }
 
-    public void setTickets(HashMap<String, Ticket> tickets) {
-        this.tickets = tickets;
-    }
-
     public HashMap<String, EmergencyCare> getEmergencyCareServices() {
         return emergencyCareServices;
     }
 
-    public void setEmergencyCareServices(HashMap<String, EmergencyCare> emergencyCareServices) {
-        this.emergencyCareServices = emergencyCareServices;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public Semaphore getRooms() {
-        return rooms;
-    }
-
-    public void setRooms(Semaphore rooms) {
-        this.rooms = rooms;
-    }
-
-    public Semaphore getDoctors() {
-        return doctors;
-    }
-
-    public void setDoctors(Semaphore doctors) {
-        this.doctors = doctors;
-    }
 }

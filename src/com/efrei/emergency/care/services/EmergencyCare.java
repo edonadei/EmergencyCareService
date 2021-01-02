@@ -21,9 +21,11 @@ public class EmergencyCare implements Runnable {
 
     public void run() {
         System.out.println("Start: Emergency care service " + this.name + "  with ID: " + this.id);
+        if (this.getPatients().availablePermits() == 0) {
+            checkForResources();
+        }
         takeCareOfPatients(this.getPatients().availablePermits());
         while (true) {
-            checkForResources();
             try {
                 Thread.sleep(20000);
             } catch (InterruptedException e) {
@@ -54,33 +56,37 @@ public class EmergencyCare implements Runnable {
         Random random = new Random();
         int numberOfNewPatients = random.nextInt((10 - 1) + 1) + 1;
         patients.release(numberOfNewPatients);
-        System.out.println(this.name + ": " + numberOfNewPatients + " new patients are coming");
-        System.out.println(this.name + ": " + this.patients.availablePermits() + " patients in total");
+        printEmergencyCare(numberOfNewPatients + " new patients are coming");
+        printEmergencyCare(this.patients.availablePermits() + " patients in total");
         takeCareOfPatients(numberOfNewPatients);
+    }
+
+    public void printEmergencyCare (String text) {
+        System.out.println(this.name + ": " + text);
     }
 
     public boolean checkForResources() {
         if (doctors.availablePermits() == 0) {
-            System.out.println(this.name + ": No more doctors, sending ticket to get one ");
+            printEmergencyCare("No more doctors, sending ticket to get one ");
             getDoctor();
         }
 
         if (rooms.availablePermits() == 0) {
-            System.out.println(this.name + ": No more rooms, sending ticket to get one ");
+            printEmergencyCare("No more rooms, sending ticket to get one ");
             getRoom();
         }
 
         if (patients.availablePermits() == 0) {
             if (rooms.availablePermits() > 0) {
-                System.out.println(this.name + ": No more patients and room available, sending ticket to give room ");
+                printEmergencyCare("No more patients and room available, sending ticket to give room ");
                 giveRoom();
             }
             if (doctors.availablePermits() > 0) {
-                System.out.println(this.name + ": No more patients and room available, sending ticket to get one ");
+                printEmergencyCare("No more patients and doctor available, sending ticket to give doctor");
                 giveDoctor();
             }
         }
-        System.out.println("waiting time : " + this.waitingTime);
+        printEmergencyCare("Waiting time : " + this.waitingTime);
         return this.waitingTime > 50;
     }
 
@@ -107,48 +113,28 @@ public class EmergencyCare implements Runnable {
     }
 
     public void giveRoom() {
-        Ticket ticketGetDoctor = new Ticket(this.id, TicketType.GIVE_DOCTOR);
-        provider.getTickets().put(ticketGetDoctor.getId(), ticketGetDoctor);
+        Ticket ticketGiveRoom = new Ticket(this.id, TicketType.GIVE_ROOM);
+        provider.getTickets().put(ticketGiveRoom.getId(), ticketGiveRoom);
     }
 
     public String getId() {
         return id;
     }
 
-    public void setId(String id) {
-        this.id = id;
-    }
-
     public String getName() {
         return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
     }
 
     public Semaphore getRooms() {
         return rooms;
     }
 
-    public void setRooms(Semaphore rooms) {
-        this.rooms = rooms;
-    }
-
     public Semaphore getDoctors() {
         return doctors;
     }
 
-    public void setDoctors(Semaphore doctors) {
-        this.doctors = doctors;
-    }
-
     public Semaphore getPatients() {
         return patients;
-    }
-
-    public void setPatients(Semaphore patients) {
-        this.patients = patients;
     }
 
     public int getWaitingTime() {
