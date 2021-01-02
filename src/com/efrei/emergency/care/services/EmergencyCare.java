@@ -2,6 +2,7 @@ package com.efrei.emergency.care.services;
 
 import com.efrei.emergency.care.entities.tickets.Ticket;
 import com.efrei.emergency.care.entities.tickets.TicketType;
+import com.efrei.emergency.care.workflows.PatientWorkflow;
 
 import java.util.Random;
 import java.util.UUID;
@@ -15,10 +16,12 @@ public class EmergencyCare implements Runnable {
     protected Semaphore doctors;
     protected Semaphore patients;
     protected Provider provider;
+    protected int waitingTime;
     Thread thread;
 
     public void run() {
         System.out.println("Start: Emergency care service " + this.name + "  with ID: " + this.id);
+        takeCareOfPatients(this.getPatients().availablePermits());
         while (true) {
             checkForResources();
             try {
@@ -26,7 +29,7 @@ public class EmergencyCare implements Runnable {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            //newPatientsComing();
+            newPatientsComing();
         }
     }
 
@@ -44,17 +47,19 @@ public class EmergencyCare implements Runnable {
         this.doctors = new Semaphore(numberDoctors);
         this.patients = new Semaphore(numberPatients);
         this.provider = provider;
+        this.waitingTime = 0;
     }
 
     public void newPatientsComing() {
         Random random = new Random();
-        int numberOfNewPatients = random.nextInt(2);
+        int numberOfNewPatients = random.nextInt((10 - 1) + 1) + 1;
         patients.release(numberOfNewPatients);
         System.out.println(this.name + ": " + numberOfNewPatients + " new patients are coming");
         System.out.println(this.name + ": " + this.patients.availablePermits() + " patients in total");
+        takeCareOfPatients(numberOfNewPatients);
     }
 
-    public void checkForResources() {
+    public boolean checkForResources() {
         if (doctors.availablePermits() == 0) {
             System.out.println(this.name + ": No more doctors, sending ticket to get one ");
             getDoctor();
@@ -74,6 +79,15 @@ public class EmergencyCare implements Runnable {
                 System.out.println(this.name + ": No more patients and room available, sending ticket to get one ");
                 giveDoctor();
             }
+        }
+        System.out.println("waiting time : " + this.waitingTime);
+        return this.waitingTime > 50;
+    }
+
+    public void takeCareOfPatients(int numberOfPatients) {
+        for (int i = 0; i < numberOfPatients; i++) {
+            PatientWorkflow patientWorkflow = new PatientWorkflow(this);
+            patientWorkflow.start();
         }
     }
 
@@ -135,6 +149,14 @@ public class EmergencyCare implements Runnable {
 
     public void setPatients(Semaphore patients) {
         this.patients = patients;
+    }
+
+    public int getWaitingTime() {
+        return waitingTime;
+    }
+
+    public void setWaitingTime(int waitingTime) {
+        this.waitingTime = waitingTime;
     }
 
 

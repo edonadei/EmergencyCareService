@@ -2,6 +2,7 @@ package com.efrei.emergency.care.workflows;
 
 import com.efrei.emergency.care.services.EmergencyCare;
 
+import java.sql.SQLOutput;
 import java.util.Random;
 import java.util.UUID;
 
@@ -15,23 +16,17 @@ public class PatientWorkflow implements Runnable {
         this.id = UUID.randomUUID().toString();
     }
 
-    public void run(){
+    public void run() {
         System.out.println("Start: Patient Workflow with ID: " + this.id);
-        //while (true) {
-            this.emergencyCare.getPatients().acquireUninterruptibly(1);
-            this.emergencyCare.checkForResources();
+        boolean tooMuchWaitingTime = this.emergencyCare.checkForResources();
+        if (tooMuchWaitingTime) {
+            System.out.println("Patient exit emergency room because there is too much waiting time");
+        } else {
             System.out.println("Patient need to fill paperwork");
             fillPaperWork();
             seeingDoctor();
             checkOut();
-            this.emergencyCare.getPatients().release(1);
-        //}
-        // It's the workflow
-
-        // Checking ressources
-        // Filling paperwork
-        // Seeing the doctor
-        // Checking out
+        }
     }
 
     public void start() {
@@ -41,36 +36,35 @@ public class PatientWorkflow implements Runnable {
         }
     }
 
-    public void fillPaperWork () {
+    public void fillPaperWork() {
         System.out.println("Patient (" + this.id + ") fill the paperwork");
-        /*try {
-            Thread.sleep(360 * 1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }*/
+        emergencyCare.setWaitingTime(emergencyCare.getWaitingTime() + 10);
+        randomWaitingTime();
     }
 
-    public void seeingDoctor () {
+    public void seeingDoctor() {
         System.out.println("Patient (" + this.id + ") enter the room and start examining");
         emergencyCare.getDoctors().acquireUninterruptibly(1);
         emergencyCare.getRooms().acquireUninterruptibly(1);
-        /*try {
-            Random rn = new Random();
-            Thread.sleep((rn.nextInt((1500 - 0) + 1) + 0) * 1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }*/
+        randomWaitingTime();
     }
 
-    public void checkOut () {
+    public void checkOut() {
         System.out.println("Patient (" + this.id + ") left the room");
         emergencyCare.getDoctors().release(1);
         emergencyCare.getRooms().release(1);
-        /*try {
-            Thread.sleep(360 * 1000);
+        emergencyCare.setWaitingTime(emergencyCare.getWaitingTime() - 10);
+        randomWaitingTime();
+        this.emergencyCare.getPatients().acquireUninterruptibly(1);
+    }
+
+    public void randomWaitingTime() {
+        try {
+            Random rn = new Random();
+            Thread.sleep((rn.nextInt((5 - 2) + 1) + 2) * 1000);
         } catch (InterruptedException e) {
             e.printStackTrace();
-        }*/
+        }
     }
 
     public String getId() {
