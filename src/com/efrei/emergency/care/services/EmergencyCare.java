@@ -26,7 +26,7 @@ public class EmergencyCare implements Runnable {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            newPatientsComing();
+            //newPatientsComing();
         }
     }
 
